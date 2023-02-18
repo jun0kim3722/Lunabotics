@@ -4,7 +4,7 @@ import numpy as np
 def resampling(Xt, Wt):
     X_sm = np.array()
     N = len(Wt)
-    positions = (radom(N) + range(N)) / N
+    positions = (random(N) + range(N)) / N
 
     indexes = np.zeros(N, 'i')
     cumulative_sum = np.cumsum(Wt)
