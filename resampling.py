@@ -2,7 +2,7 @@ import numpy as np
 from numpy.random import random
 
 def resampling(Xt, Wt):
-    # X_sm = np.array()
+    
     N = len(Wt)
     positions = (random(N) + range(N)) / N
 
@@ -18,9 +18,11 @@ def resampling(Xt, Wt):
         
     return Xt[indexes]
 
-Xt = np.array([1, 12, 3, 4, 5])
-Wt = np.array([0.1, 0.2, 0.2, 0.2, 0.3])
+if __name__ == '__main__':
 
-sample = resampling(Xt, Wt)
+    Xt = np.array([1, 12, 3, 4, 5])
+    Wt = np.array([0.1, 0.2, 0.2, 0.2, 0.3])
 
-print(sample)
+    sample = resampling(Xt, Wt)
+
+    print(sample)
