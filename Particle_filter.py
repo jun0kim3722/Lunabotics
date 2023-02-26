@@ -30,10 +30,7 @@ def creating_partcles(pre_Xt, Ut, Zt, Ct): # form of Ut and Zt gotta be differen
     for j in range(J):
         xt = np.random.normal(pre_Xt + Ut, sigma, 1) # Obtain new sample #starts from uniform distribution
         
-        mu_d += (xt - (pre_Xt + Ut))**2 # if we have to do sigma calc   
-        
-        # so Do you get array of samples in every j? so J number of array set? I mean usually X_bar means mean of samples so this is the answer?
-        # or just one sample at a time which J number of sample
+        mu_d += (xt - (pre_Xt + Ut))**2 # if we have to do sigma calc
 
 
     #     ----------------------landmark, Ct-------------------------------
