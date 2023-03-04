@@ -1,8 +1,8 @@
-import resampling
 import numpy as np
 from random import sample
 import math
 from scipy.stats import multivariate_normal
+from numpy.random import random
 
 def calc_weight(Zt, Q, Zt_1):
     # Q = 1                               # measument covariance
@@ -33,6 +33,7 @@ def creating_partcles(pre_particle, Ut, Zt, Ct): # form of Ut and Zt gotta be di
         x = np.random.normal(pre_particle + Ut, sigma, 1) # Obtain new x value for new sample #starts from uniform distribution
         y = np.random.normal(pre_particle + Ut, sigma, 1) #Obtains new y value for new sample
         theta = np.random.normal(pre_particle + Ut, sigma, 1) #Between 0 and 2pi radians
+        
         particle = [x,y,theta]
         
         mu_d += (particle - (pre_particle + Ut))**2 # if we have to do sigma calc, NOT BEING USED IRRELEVANT DONT PAY ATTENTION
@@ -54,6 +55,19 @@ def creating_partcles(pre_particle, Ut, Zt, Ct): # form of Ut and Zt gotta be di
     #             update mean = mu
     #             update covariance
     # State transition function
+    
+        Wt = calc_weight(Zt, 1, 1) # calc weight
+        Particle_bar += np.dot(particle, Wt) # predicted pos. assume Wt is probability. We can ignore this(can be replaced by resampling step)
+
+        particle.append(Wt)
+        particle_set[N] = particle
+    
+    
+    sigma = varience(mu_d, N)
+    particle = resampling(Particle_bar, Particle_bar[n][1]) # resampling from sample set. Need to be fixed
+
+    return particle_set, Particle_bar, sigma
+    
 def f(pre_particle, u, Wt):
     A = np.array([[1, 1], [0, 1]])
     B = np.array([[0.5], [1]])
@@ -119,20 +133,30 @@ def particle_update(particle_set, N, u, t, h, f, Q, R, H):
     # end for loop
     # resampling and get Xt
 
-        Wt = calc_weight(Zt, 1, 1) # calc weight
-        Particle_bar += np.dot(particle, Wt) # predicted pos. assume Wt is probability. We can ignore this(can be replaced by resampling step)
-
-        particle.append(Wt)
-        particle_set[N] = particle
         
+
+
+def resampling(particle_set):
+    
+    N = len(particle_set[3])
+    positions = (random(N) + range(N)) / N
+
+    indexes = np.zeros(N, 'i')
+    cumulative_sum = np.cumsum(particle_set[3])
+    i , j = 0, 0
+    while i < N:
+        if positions[i] < cumulative_sum[j]:
+            indexes[i] = j
+            i += 1
+        else:
+            j += 1
         
-    sigma = varience(mu_d, N)
-    Particle = resampling(Particle_bar, Particle_bar[n][1]) # resampling from sample set. Need to be fixed
-
-    return particle_set, Particle_bar, sigma
-
+    return particle_set[indexes]
 
 if __name__ == '__main__':
 
     particle_set = creating_partcles(50, 50, 1, 1)
     print("particle_set =\n", particle_set)
+
+    sample = resampling(particle_set)
+    print(sample)
