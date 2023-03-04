@@ -22,7 +22,7 @@ def creating_partcles(pre_particle, Ut, Zt, Ct): # form of Ut and Zt gotta be di
 
     # every sample should have : pose(x,y,z), weight, landmarks(list of 2 by 2 kalman filter)
     
-    N = 10    # J number of sample, particle created.
+    N = 10    # N number of sample, particle created.
     sigma = 3 # Tune or calc??
     Particle_bar = 0
     mu_d = 0
