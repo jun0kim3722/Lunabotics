@@ -2,7 +2,7 @@ import resampling
 import numpy as np
 from random import sample
 import math
-
+from scipy.stats import multivariate_normal
 
 def calc_weight(Zt, Q, Zt_1):
     # Q = 1                               # measument covariance
