@@ -18,25 +18,33 @@ def varience(mu_d, J): # sigma calc eq
     return (1 / J - 1) * mu_d
 
 
-def creating_partcles(pre_Xt, Ut, Zt, Ct): # form of Ut and Zt gotta be different format. This is just for referace.
+def creating_partcles(pre_particle, Ut, Zt, Ct): # form of Ut and Zt gotta be different format. This is just for referace.
 
     # every sample should have : pose(x,y,z), weight, landmarks(list of 2 by 2 kalman filter)
     
-    J = 10    # J number of sample, particle created.
+    N = 10    # J number of sample, particle created.
     sigma = 3 # Tune or calc??
-    X_bar = 0
+    Particle_bar = 0
     mu_d = 0
+    
+    particle_set = np.zeros(N,1) #[x,y,theta, weight]
 
-    for j in range(J):
-        xt = np.random.normal(pre_Xt + Ut, sigma, 1) # Obtain new sample #starts from uniform distribution
+    for n in range(N):
+        x = np.random.normal(pre_particle + Ut, sigma, 1) # Obtain new x value for new sample #starts from uniform distribution
+        y = np.random.normal(pre_particle + Ut, sigma, 1) #Obtains new y value for new sample
+        theta = np.random.normal(pre_particle + Ut, sigma, 1) #Between 0 and 2pi radians
+        particle = [x,y,theta]
         
-        mu_d += (xt - (pre_Xt + Ut))**2 # if we have to do sigma calc
+        
+        
+        
+        mu_d += (particle - (pre_particle + Ut))**2 # if we have to do sigma calc
 
 
     #     ----------------------landmark, Ct-------------------------------
-    #     if Ct never seen before:
+    #     if Ct never seen before: 
     #         1. initialize mean = mu
-    #         2. calculate Jacobian = H
+    #         2. calculate Jacobian = H 
     #         3. initialize covariance
     #         4. default importance weight
 
@@ -55,15 +63,19 @@ def creating_partcles(pre_Xt, Ut, Zt, Ct): # form of Ut and Zt gotta be differen
     # resampling and get Xt
 
         Wt = calc_weight(Zt, 1, 1) # calc weight
-        X_bar += np.dot(xt, Wt) # predicted pos. assume Wt is probability. We can ignore this(can be replaced by resampling step)
+        Particle_bar += np.dot(particle, Wt) # predicted pos. assume Wt is probability. We can ignore this(can be replaced by resampling step)
 
-    sigma = varience(mu_d, J)
-    Xt = resampling(X_bar, X_bar[j][1]) # resampling from sample set. Need to be fixed
+        particle.append(Wt)
+        particle_set[N] = particle
+        
+        
+    sigma = varience(mu_d, N)
+    Particle = resampling(Particle_bar, Particle_bar[n][1]) # resampling from sample set. Need to be fixed
 
-    return Xt, X_bar, sigma
+    return particle_set, Particle_bar, sigma
 
 
 if __name__ == '__main__':
 
-    Xt = creating_partcles(50, 50, 1, 1)
-    print("Xt =\n", Xt)
+    particle_set = creating_partcles(50, 50, 1, 1)
+    print("particle_set =\n", particle_set)
