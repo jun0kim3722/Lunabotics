@@ -17,8 +17,7 @@ def calc_weight(Zt, Q, Zt_1):
 def varience(mu_d, J): # sigma calc eq
     return (1 / J - 1) * mu_d
 
-
-def creating_partcles(pre_particle, Ut, Zt, Ct): # form of Ut and Zt gotta be different format. This is just for referace.
+def creating_particles(pre_particle, Ut, Zt, Ct): # form of Ut and Zt gotta be different format. This is just for referace.
 
     # every sample should have : pose(x,y,z), weight, landmarks(list of 2 by 2 kalman filter)
     
@@ -132,9 +131,6 @@ def particle_update(particle_set, N, u, t, h, f, Q, R, H):
     #         # keep unobserved ladmark unchanged
     # end for loop
     # resampling and get Xt
-
-        
-
 
 def resampling(particle_set):
     
