@@ -2,7 +2,11 @@ import resampling
 import numpy as np
 from random import sample
 import math
+import rospy
 
+class particle_filter:
+    def __init__(self):
+        self.sub = rospy.Subscriber("")
 
 def calc_weight(Zt, Q, Zt_1):
     # Q = 1                               # measument covariance
@@ -61,9 +65,12 @@ def creating_partcles(pre_Xt, Ut, Zt, Ct): # form of Ut and Zt gotta be differen
     Xt = resampling(X_bar, X_bar[j][1]) # resampling from sample set. Need to be fixed
 
     return Xt, X_bar, sigma
-
-
 if __name__ == '__main__':
 
-    Xt = creating_partcles(50, 50, 1, 1)
-    print("Xt =\n", Xt)
+    # Xt = creating_partcles(50, 50, 1, 1)
+    # print("Xt =\n", Xt)
+
+    rospy.init_node("particle_filter_node")
+
+    def shutdown_hook():
+        print("praticle filter stopped manually")
