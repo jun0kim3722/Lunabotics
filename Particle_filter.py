@@ -35,9 +35,6 @@ def creating_partcles(pre_particle, Ut, Zt, Ct): # form of Ut and Zt gotta be di
         theta = np.random.normal(pre_particle + Ut, sigma, 1) #Between 0 and 2pi radians
         particle = [x,y,theta]
         
-        
-        
-        
         mu_d += (particle - (pre_particle + Ut))**2 # if we have to do sigma calc
 
 
