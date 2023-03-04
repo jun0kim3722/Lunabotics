@@ -14,7 +14,7 @@ def calc_weight(Zt, Q, Zt_1):
     # how to compute weight? Gaussian with replace sigma to Q and x - u with Zt and predicted Zt
     return 1
 
-def varience(mu_d, J): # sigma calc eq
+def variance(mu_d, J): # sigma calc eq
     return (1 / J - 1) * mu_d
 
 def creating_particles(pre_particle, Ut, Zt, Ct): # form of Ut and Zt gotta be different format. This is just for referace.
