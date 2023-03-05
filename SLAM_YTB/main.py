@@ -3,8 +3,6 @@ import sensors
 import pygame
 import math
 
-# sys.path.insert(0, 'D:\Purdue\2-2\ECE 20875\Lunabotics\SLAM_YTB')
-
 environment = env.buildEnvironment((600, 1200))
 environment.originalMap = environment.map.copy()
 laser = sensors.Laserensor(200, environment.originalMap, uncertainty=(0.5, 0.01))
@@ -26,9 +24,7 @@ while running:
             position = pygame.mouse.get_pos()
             laser.position = position
             sensor_data = laser.sense_obstacles()
-
-            print(sensor_data)
-            environment.dataStorage(sensor_data)
+            environment.dataStorage(sensor_data) #error
             environment.show_sensorData()
         environment.map.blit(environment.infomap, (0,0))
         pygame.display.update()

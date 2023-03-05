@@ -29,7 +29,7 @@ class Laserensor:
     def sense_obstacles(self):
         data = []
         x1, y1 = self.position[0], self.position[1]
-        for angle in np.linspace(0, 2*math.pi, 60, False):
+        for angle in np.linspace(0, 2 * math.pi, 60, False):
             x2,y2 = (x1 + self.Range * math.cos(angle), y1 - self.Range * math.sin(angle))
             for i in range(0, 100):
                 u = i / 100
@@ -43,9 +43,9 @@ class Laserensor:
                         output.append(self.position)
                         # store the mesurements
                         data.append(output)
-                        break
-                    
+                        break           
         if len(data) > 0:
             return data
-        else: return False
+        else:
+            return False
 
