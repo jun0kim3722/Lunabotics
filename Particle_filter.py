@@ -53,7 +53,6 @@ def creating_particles(pre_particle, Ut, Zt, Ct): # form of Ut and Zt gotta be d
     #             calculate Kalman gain = K
     #             update mean = mu
     #             update covariance
-    # State transition function
     
         Wt = calc_weight(Zt, 1, 1) # calc weight
         Particle_bar += np.dot(particle, Wt) # predicted pos. assume Wt is probability. We can ignore this(can be replaced by resampling step)
@@ -66,7 +65,8 @@ def creating_particles(pre_particle, Ut, Zt, Ct): # form of Ut and Zt gotta be d
     particle = resampling(Particle_bar, Particle_bar[n][1]) # resampling from sample set. Need to be fixed
 
     return particle_set, Particle_bar, sigma
-    
+
+# State transition function
 def f(pre_particle, u, Wt):
     A = np.array([[1, 1], [0, 1]])
     B = np.array([[0.5], [1]])
