@@ -48,4 +48,3 @@ class Laserensor:
             return data
         else:
             return False
-
