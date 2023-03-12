@@ -32,7 +32,7 @@ class buildEnvironment:
                 if point not in self.pointCloud:
                     self.pointCloud.append(point)
         else:
-            print("Robot is not inside the MAP")
+            print("No lazer data")
 
         if position not in self.true_trajectory:
             self.true_trajectory.append(position)

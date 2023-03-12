@@ -2,6 +2,7 @@ import env
 import sensors
 import robot_drive
 import pygame
+import Particle_filter
 
 environment = env.buildEnvironment((600, 1200))
 environment.originalMap = environment.map.copy()
@@ -22,9 +23,6 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             robot.control(event, dt)
-        else:
-            robot.vl = 0
-            robot.vr = 0
 
         if sensorON:
             position = [robot.x, robot.y]
@@ -37,6 +35,7 @@ while running:
 
 
 
+# mouse input
 # while running:
 #     sensorON = False
 #     for event in pygame.event.get():

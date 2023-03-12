@@ -151,7 +151,7 @@ def resampling(particle_set):
 
 if __name__ == '__main__':
 
-    particle_set = creating_partcles(50, 50, 1, 1)
+    particle_set = creating_particles()
     print("particle_set =\n", particle_set)
 
     sample = resampling(particle_set)
