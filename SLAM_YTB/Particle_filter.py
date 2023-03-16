@@ -34,18 +34,20 @@ class particle_filter:
 
         #     else:
         #    <EKF-update> // update landmark # first compute weight and update the map??
-        #       measurement prediction = Z_hat
+        #       measurement prediction = h, commonly referred to a z_hat
+                Z_hat = h(particle, Ut)
+        #       state transition update = Zt_1
+                Zt_1 = f(pre_particle, Ut, Wt)
         #       calculate Jacobian = H
-        #       measurment covariance = Q
-        #       calculate Kalman gain = K       
-        #       update mean = mu
-        #       update covariance
+                H = calc_jacobian(particle_set, Z_hat) # Particle set not defined here, needs single particle.
+        #       measurment covariance = Q and R
+                Q = calc_covariance_Q(particle, Wt)
+                R = calc_covariance_R(z)    
         
             Wt = calc_weight(Zt, Q, Zt_1) # calc weight
             self.weight.append(Wt)
             particle = np.concatenate((x, y, theta, np.array([Wt])))
             particle_set[n] = particle
-        
         
         print("Before",particle_set)
         particle_set = particle_set[resampling(self)] # resampling from sample set. Need to be fixed
@@ -54,24 +56,23 @@ class particle_filter:
         self.pre_particle = particle_set
         particle_bar = reduce((lambda x,y : x + y), [particle_set[i][0:3] * particle_set[i][3] for i in range(len(particle_set))])
 
-
         return particle_set, particle_bar
 
 # State transition function
-def f(pre_particle, u, Wt):
+def f(pre_particle, Ut, Wt):
     A = np.array([[1, 1], [0, 1]])
     B = np.array([[0.5], [1]])
-    f = np.dot(A, pre_particle) + np.dot(B, u) + Wt
-    return f
+    Zt_1 = np.dot(A, pre_particle) + np.dot(B, Ut) + Wt
+    return Zt_1
 
 # Observation function
-def h(particle, v):
+def h(particle, Ut):
     C = np.array([1, 0])
-    h = np.dot(C, particle) + v
-    return h
+    Z_hat = np.dot(C, particle) + Ut
+    return Z_hat
 
 # Jacobian calculation function
-def calc_jacobian(particle_set, h):
+def calc_jacobian(particle_set, Z_hat):
     num_diff = 1e-6
     N = particle_set.shape[0]
     m = h(particle_set).shape[0]
@@ -95,28 +96,28 @@ def calc_covariance_R(z):
     return R
 
 # Particle filter algorithm
-def particle_update(particle_set, N, u, t, h, f, Q, R, H):
-    if t == 0:
-        for i in range(N):
-            particle_set[i,0] = np.array([0., 0., 0.])
-            particle_set[i,1:-1] = np.random.normal(0., 1., size=(particle_set.shape[1]-2)//2)
-            particle_set[i,-1] = 1./N
+# def particle_update(particle_set, N, Ut, t, h, f, Q, R, H):
+#     if t == 0:
+#         for i in range(N):
+#             particle_set[i,0] = np.array([0., 0., 0.])
+#             particle_set[i,1:-1] = np.random.normal(0., 1., size=(particle_set.shape[1]-2)//2)
+#             particle_set[i,-1] = 1./N
     
-    # Predict step
-    for i in range(N):
-        particle_set[i,0:3] = f(particle_set[i,0:3], particle_set[i,3:])
-        particle_set[i,3:] = np.random.multivariate_normal(np.zeros(Q.shape[0]), Q)
+#     # Predict step
+#     for i in range(N):
+#         particle_set[i,0:3] = f(particle_set[i,0:3], particle_set[i,3:])
+#         particle_set[i,3:] = np.random.multivariate_normal(np.zeros(Q.shape[0]), Q)
     
-    # Update step
-    for obs in u:
-        for i in range(N):
-            # Compute weight for particle i
-            z_hat = h(particle_set[i,0:3])
-            J = H(particle_set[i,0:3])
-            S = np.dot(np.dot(J, particle_set[i,3:-1].reshape(-1,2)), J.T) + R
-            K = np.dot(np.dot(particle_set[i,3:-1].reshape(-1,2), J.T), np.linalg.inv(S))
-            particle_set[i,-1] = multivariate_normal.pdf(obs, mean=z_hat, cov=S) # likelihood
-            particle_set[i,3:-1] = np.reshape(particle_set[i,3:-1].reshape(-1,2) + np.dot(K, (obs - z_hat).reshape(-1,1)).flatten(), (-1,)) # update landmark estimates
+#     # Update step
+#     for obs in Ut:
+#         for i in range(N):
+#             # Compute weight for particle i
+#             z_hat = h(particle_set[i,0:3])
+#             J = H(particle_set[i,0:3])
+#             S = np.dot(np.dot(J, particle_set[i,3:-1].reshape(-1,2)), J.T) + R
+#             K = np.dot(np.dot(particle_set[i,3:-1].reshape(-1,2), J.T), np.linalg.inv(S))
+#             particle_set[i,-1] = multivariate_normal.pdf(obs, mean=z_hat, cov=S) # likelihood
+#             particle_set[i,3:-1] = np.reshape(particle_set[i,3:-1].reshape(-1,2) + np.dot(K, (obs - z_hat).reshape(-1,1)).flatten(), (-1,)) # update landmark estimates
         
             # Wt = calc_weight(Zt, prev_Q, Zt_1) # calc weight
     #         # keep unobserved ladmark unchanged
