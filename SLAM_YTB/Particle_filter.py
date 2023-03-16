@@ -25,29 +25,31 @@ class particle_filter:
             y = np.random.normal(self.pre_particle[1] + Ut, self.sigma[1], 1) #Obtains new y value for new sample
             theta = np.random.normal(self.pre_particle[2] + Ut, self.sigma[2], 1) #Between 0 and 2pi radians
 
+            particle = np.concatenate((x, y, theta))
+
         #     ----------------------landmark, Ct-------------------------------
-        #     if self.Ct never seen before: 
+            if self.Ct == 0: # never seen before:
+                pass
         #         1. initialize mean = mu
         #         2. calculate Jacobian = H 
         #         3. initialize covariance
         #         4. default importance weight
 
-        #     else:
-        #    <EKF-update> // update landmark # first compute weight and update the map??
+            else:   #<EKF-update> // update landmark # first compute weight and update the map??
         #       measurement prediction = h, commonly referred to a z_hat
                 Z_hat = h(particle, Ut)
         #       state transition update = Zt_1
-                Zt_1 = f(pre_particle, Ut, Wt)
+                Zt_1 = f(self.pre_particle, Ut, Wt)
         #       calculate Jacobian = H
                 H = calc_jacobian(particle_set, Z_hat) # Particle set not defined here, needs single particle.
         #       measurment covariance = Q and R
                 Q = calc_covariance_Q(particle, Wt)
                 R = calc_covariance_R(z)    
         
+            
             Wt = calc_weight(Zt, Q, Zt_1) # calc weight
             self.weight.append(Wt)
-            particle = np.concatenate((x, y, theta, np.array([Wt])))
-            particle_set[n] = particle
+            particle_set = np.concatenate((x, y, theta, np.array([Wt])))
         
         print("Before",particle_set)
         particle_set = particle_set[resampling(self)] # resampling from sample set. Need to be fixed
