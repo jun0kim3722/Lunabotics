@@ -36,15 +36,15 @@ class particle_filter:
         #         4. default importance weight
 
             else:   #<EKF-update> // update landmark # first compute weight and update the map??
-        #       measurement prediction = h, commonly referred to a z_hat
+        #       measurement prediction = Z_hat
                 Z_hat = h(particle, Ut)
         #       state transition update = Zt_1
                 Zt_1 = f(self.pre_particle, Ut, Wt)
         #       calculate Jacobian = H
-                H = calc_jacobian(particle_set, Z_hat) # Particle set not defined here, needs single particle.
+                H = calc_jacobian(particle, Z_hat)
         #       measurment covariance = Q and R
                 Q = calc_covariance_Q(particle, Wt)
-                R = calc_covariance_R(z)    
+                R = calc_covariance_R(Z_hat)    
         
             
             Wt = calc_weight(Zt, Q, Zt_1) # calc weight
@@ -74,15 +74,15 @@ def h(particle, Ut):
     return Z_hat
 
 # Jacobian calculation function
-def calc_jacobian(particle_set, Z_hat):
+def calc_jacobian(particle, Z_hat):
     num_diff = 1e-6
-    N = particle_set.shape[0]
-    m = h(particle_set).shape[0]
+    N = particle.shape[0]
+    m = Z_hat(particle).shape[0]
     H = np.zeros((m,N))
     for i in range(N):
-        particle_i = particle_set.copy()
+        particle_i = particle.copy()
         particle_i[i] += num_diff
-        H[:,i] = (h(particle_i) - h(particle_set)) / num_diff
+        H[:,i] = (Z_hat(particle_i) - Z_hat(particle)) / num_diff
     return H
 
 # Calculates covariance matrix for process noise
@@ -91,9 +91,9 @@ def calc_covariance_Q(particle, Wt):
     return Q
 
 # Calculates covariance matrix for observation noise
-def calc_covariance_R(z):
-    z_mean = np.mean(z, axis=1)
-    z_diff = z - z_mean.reshape(-1, 1)
+def calc_covariance_R(Z_hat):
+    z_mean = np.mean(Z_hat, axis=1)
+    z_diff = Z_hat - z_mean.reshape(-1, 1)
     R = np.cov(z_diff)
     return R
 
