@@ -1,5 +1,6 @@
 import pygame
 import math
+from numpy import random
 
 class Robot:
     def __init__(self, startpos, width):
@@ -35,15 +36,15 @@ class Robot:
     def control(self, event, dt):
 
         if event.key == pygame.K_UP:
-            self.vl = 10
-            self.vr = 10
+            self.vl = random.normal(loc = 10, scale = 0.05)
+            self.vr = random.normal(loc = 10, scale = 0.05)
         elif event.key == pygame.K_DOWN:
-            self.vl = -2
-            self.vr = -2
+            self.vl = random.normal(loc = -10, scale = 0.5)
+            self.vr = random.normal(loc = -10, scale = 0.5)
         elif event.key == pygame.K_LEFT:
-            self.theta += 1
+            self.theta += random.normal(loc = 1, scale = 0.1)
         elif event.key == pygame.K_RIGHT:
-            self.theta -= 1
+            self.theta -= random.normal(loc = 1, scale = 0.1)
 
         self.x += ((self.vl + self.vr) / 2) * math.cos(self.theta)
         self.y -= ((self.vl + self.vr) / 2) * math.sin(self.theta)

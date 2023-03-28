@@ -1,5 +1,7 @@
 import math
 import pygame
+import Particle_filter
+
 class buildEnvironment:
     def __init__(self, MapDimensions):
         pygame.init()
@@ -31,6 +33,7 @@ class buildEnvironment:
                 point = self.AD2pos(element[0], element[1], element[2])
                 if point not in self.pointCloud:
                     self.pointCloud.append(point)
+                    # Particle_filter.Ct = True
         else:
             print("No lazer data")
 
