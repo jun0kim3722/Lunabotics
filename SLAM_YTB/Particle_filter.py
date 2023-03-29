@@ -15,6 +15,7 @@ class particle_filter:
         self.sigma = sigma
         self.N = N
         self.weight = []
+        self.particle = []
 
     def creating_particles(self, Ut, Zt): # form of Ut and Zt gotta be different format. This is just for referace.
 
@@ -52,13 +53,11 @@ class particle_filter:
             Wt = calc_weight(Zt, Q, Zt_1) # calc weight
             self.weight.append(Wt)
             particle_set = np.concatenate((x, y, theta, np.array([Wt])))
-        
-        print("Before",particle_set)
-        particle_set = particle_set[resampling(self)] # resampling from sample set. Need to be fixed
-        print("updated", particle_set)
+            self.particle.append(particle_set)
 
-        self.pre_particle = particle_set
-        particle_bar = reduce((lambda x,y : x + y), [particle_set[i][0:3] * particle_set[i][3] for i in range(len(particle_set))])
+        particle = list(map(lambda x: self.particle[x], resampling(self))) # list of particles
+        self.pre_particle = particle # update previous list of particles
+        particle_bar = reduce((lambda x,y : x + y), [particle[i][0:3] * particle[i][3] for i in range(len(particle))])
 
         return particle_set, particle_bar
 
@@ -105,7 +104,7 @@ def resampling(self): # Broken gotta fix.
     N = self.N
     positions = (random(N) + range(N)) / N
     indexes = np.zeros(N, 'i')
-    cumulative_sum = np.cumsum(self.weight) #particle_set[3] == 3rd particle sample which means [x, y, theta, Wt]
+    cumulative_sum = np.cumsum(self.weight)
     i , j = 0, 0
     while i < N:
         if positions[i] < cumulative_sum[j]:
@@ -123,3 +122,8 @@ if __name__ == '__main__':
     particle = particle_filter([10,10,10], 10)
 
     particle_set = particle.creating_particles(1, 1)
+
+    # particle.weight = [0.1]*10
+    # resample = resampling(particle)
+    # print(resample)
+
