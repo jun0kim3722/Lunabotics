@@ -47,8 +47,7 @@ class particle_filter:
                 H = calc_jacobian(particle, Z_hat)
         #       measurment covariance = Q and R
                 Q = calc_covariance_Q(particle, Wt)
-                R = calc_covariance_R(Z_hat)    
-        
+                R = calc_covariance_R(Z_hat) # R is for motion model which we don't need (dealing with landmark only)
             
             Wt = calc_weight(Zt, Q, Zt_1) # calc weight
             self.weight.append(Wt)
