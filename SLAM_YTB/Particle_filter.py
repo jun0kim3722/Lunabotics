@@ -29,7 +29,7 @@ class particle_filter:
             particle = np.concatenate((x, y, theta))
 
         #     ----------------------landmark, Ct-------------------------------
-            if self.Ct == True: # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
+            if # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
         #   1. initialize mean = mu
                 
         #   2. calculate Jacobian = H
@@ -38,15 +38,15 @@ class particle_filter:
 
         #   4. default importance weight
 
-            else:   #<EKF-update> // update landmark # first compute weight and update the map??
+            else:   #<EKF-update> // update landmark
         #       measurement prediction = Z_hat
                 Z_hat = h(particle, Ut)
         #       state transition update = Zt_1
-                Zt_1 = f(self.pre_particle, Ut, Wt)
+                Zt_1 = f(self.pre_particle, Ut, Wt) # Wt is not calculated yet
         #       calculate Jacobian = H
-                H = calc_jacobian(particle, Z_hat)
+                H = calc_jacobian(particle, Z_hat) # Jacobian should be used to calc civariance
         #       measurment covariance = Q and R
-                Q = calc_covariance_Q(particle, Wt)
+                Q = calc_covariance_Q(particle, Wt) # Wt is not calculated yet
                 R = calc_covariance_R(Z_hat) # R is for motion model which we don't need (dealing with landmark only)
             
             Wt = calc_weight(Zt, Q, Zt_1) # calc weight
