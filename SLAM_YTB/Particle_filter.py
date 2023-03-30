@@ -29,7 +29,6 @@ class particle_filter:
 
             particle = np.concatenate((x, y, theta))
             
-            
             Z_hat = h(particle, Ut) 
             H = calc_jacobian(particle, Z_hat)
             Q = calc_covariance_Q(particle, Wt, H, Zt) # Initialize covariance thingy
