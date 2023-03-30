@@ -20,6 +20,7 @@ class particle_filter:
     def creating_particles(self, Ut, Zt): # form of Ut and Zt gotta be different format. This is just for referace.
 
         particle_set = np.zeros((self.N, 4)) #[x, y, theta, Weight]
+        Wt[N:] = 1/N #default importance weight
 
         for n in range(self.N):
             x = np.random.normal(self.pre_particle[0] + Ut, self.sigma[0], 1) # Obtain new x value for new sample #starts from uniform distribution
@@ -27,28 +28,19 @@ class particle_filter:
             theta = np.random.normal(self.pre_particle[2] + Ut, self.sigma[2], 1) #Between 0 and 2pi radians
 
             particle = np.concatenate((x, y, theta))
+            
+            
+            Z_hat = h(particle, Ut) 
+            H = calc_jacobian(particle, Z_hat)
+            Q = calc_covariance_Q(particle, Wt, H, Zt) # Initialize covariance thingy
 
         #     ----------------------landmark, Ct-------------------------------
             if # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
-        #   1. initialize mean = mu
-                
-        #   2. calculate Jacobian = H
-                H = calc_jacobian(particle, Z_hat)
-        #   3. initialize covariance
-
-        #   4. default importance weight
-
+                mu = mu(N);  # initialize mean = mu
+        
             else:   #<EKF-update> // update landmark
-        #       measurement prediction = Z_hat
-                Z_hat = h(particle, Ut)
-        #       state transition update = Zt_1
-                Zt_1 = f(self.pre_particle, Ut, Wt) # Wt is not calculated yet
-        #       calculate Jacobian = H
-                H = calc_jacobian(particle, Z_hat) # Jacobian should be used to calc civariance
-        #       measurment covariance = Q and R
-                Q = calc_covariance_Q(particle, Wt) # Wt is not calculated yet
-                R = calc_covariance_R(Z_hat) # R is for motion model which we don't need (dealing with landmark only)
-            
+                Zt_1 = f(self.pre_particle, Ut, Wt) # state transition update = Zt_1
+    
             Wt = calc_weight(Zt, Q, Zt_1) # calc weight
             self.weight.append(Wt)
             particle_set = np.concatenate((x, y, theta, np.array([Wt])))
@@ -59,6 +51,16 @@ class particle_filter:
         particle_bar = reduce((lambda x,y : x + y), [particle[i][0:3] * particle[i][3] for i in range(len(particle))])
 
         return particle_set, particle_bar
+
+#Initialie mu
+def mu(N):
+    num_state_vars = 3
+    initial_state = np.array([0,0,0])
+    particles = np.zeros(N, num_state_vars)
+    for i in range(N):
+        particles[i] = initial_state + np.random.normal(0, 1, num_state_vars)
+    return np.mean(particles, axis=0)
+
 
 # State transition function
 def f(pre_particle, Ut, Wt):
@@ -86,16 +88,13 @@ def calc_jacobian(particle, Z_hat):
     return H
 
 # Calculates covariance matrix for process noise
-def calc_covariance_Q(particle, Wt):
-    Q = np.cov(particle, aweights=Wt)
+def calc_covariance_Q(particle, Wt, H, Zt):
+    num_states = H.shape[1]
+    num_measures = H.shape[0]
+    innovation = np.(H, particle) - Zt
+    outer = np.outer(innovation, Wt)
+    Q = np.dot(outer, outer.T) / (1.0 - np.sum(Wt**2))
     return Q
-
-# Calculates covariance matrix for observation noise
-def calc_covariance_R(Z_hat):
-    z_mean = np.mean(Z_hat, axis=1)
-    z_diff = Z_hat - z_mean.reshape(-1, 1)
-    R = np.cov(z_diff)
-    return R
 
 
 def resampling(self): # Broken gotta fix.
@@ -125,4 +124,3 @@ if __name__ == '__main__':
     # particle.weight = [0.1]*10
     # resample = resampling(particle)
     # print(resample)
-
