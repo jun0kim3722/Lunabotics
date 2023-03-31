@@ -9,6 +9,7 @@ class particle_filter:
     
     prev_sig = []
     prev_l_pos = []
+    Qt = None
 
     def __init__(self, m_sigma, l_sigma, N):
         self.prev_particle = [0, 0, 0]
@@ -35,15 +36,15 @@ class particle_filter:
             if # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
                 # initialize mean = mu => list of landmarks
                 l_pos = landmark_pos(particle, Zt)
-                mu = np.linalg.inv(h(particle, l_pos))
+                l_pos = np.linalg.inv(h(particle, l_pos)); self.prev_l_pos = l_pos
 
                 # calculate Jacobian = H 
                 H = calc_jacobian(Z_hat, delta)
 
                 # initialize covariance => list of uncertainty of landmarks
-                Qt = init_Qt(self)
+                Qt = init_Qt(self); self.Qt = Qt
                 inv_H = np.linalg.inv(H)
-                sig = inv_H @ Qt @ inv_H.T
+                sig = inv_H @ Qt @ inv_H.T ; self.prev_sig = sig
 
                 # default importance weight
                 Wt = 0.1 # turn value I believe
@@ -58,6 +59,7 @@ class particle_filter:
 
                 # measurment covariance = Q
                 Q = H @ sig @ H.T + Qt
+                self.Qt = update_Qt(Qt)
 
                 # calculate Kalman gain = K
                 K = calc_kalmangain(self.prev_sig ,H, particle, Q)   
