@@ -13,7 +13,7 @@ class particle_filter:
 
     def __init__(self, m_sigma, l_sigma, N):
         self.prev_particle = [0, 0, 0]
-        self.Ct = None
+        self.Ct = True
         self.m_sigma = m_sigma
         self.l_sigma = l_sigma
         self.N = N
@@ -23,19 +23,20 @@ class particle_filter:
     def creating_particles(self, Ut, Zt): # form of Ut and Zt gotta be different format. This is just for referace.
 
         particle_set = np.zeros((self.N, 4)) #[x, y, theta, Weight]
-        Wt[self.N:] = 1/self.N #default importance weight
 
         for n in range(self.N):
-            x = np.random.normal(self.prev_particle[0] + Ut, self.sigma[0], 1) # Obtain new x value for new sample #starts from uniform distribution
-            y = np.random.normal(self.prev_particle[1] + Ut, self.sigma[1], 1) #Obtains new y value for new sample
-            theta = np.random.normal(self.prev_particle[2] + Ut, self.sigma[2], 1) #Between 0 and 2pi radians
+            x = np.random.normal(self.prev_particle[0] + Ut, self.m_sigma[0], 1) # Obtain new x value for new sample #starts from uniform distribution
+            y = np.random.normal(self.prev_particle[1] + Ut, self.m_sigma[1], 1) #Obtains new y value for new sample
+            theta = np.random.normal(self.prev_particle[2] + Ut, self.m_sigma[2], 1) #Between 0 and 2pi radians
 
             particle = np.concatenate((x, y, theta))
             
         #     ----------------------landmark, Ct-------------------------------
-            if # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
+            if self.Ct:# Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
                 # initialize mean = mu => list of landmarks
                 l_pos = landmark_pos(particle, Zt)
+                Z_hat, delta = h(particle, l_pos)
+
                 l_pos = np.linalg.inv(h(particle, l_pos)); self.prev_l_pos = l_pos
 
                 # calculate Jacobian = H 
@@ -115,23 +116,25 @@ def h(particle, L_pos):
     delta = np.array([L_x - R_x, L_y - R_y])
     q = delta.T @ delta
 
-    Z_hat = np.array(np.sqrt(q), np.arctan2(delta) - R_th)
+    Z_hat = np.array([np.sqrt(q), np.arctan2(delta[1], delta[0]) - R_th])
 
     return Z_hat, delta # returning expected observation
+
 
 # Jacobian calculation function
 def calc_jacobian(Z_hat, delta):
     q = Z_hat[0]
-    x = np.array([delta[1], -delta[0], q , -delta[1], delta[0]])
-    y = np.sqrt(q) * [-delta[0], -delta[1], 0, delta[0], delta[1]]
+    x = np.array([delta[1], -delta[0], q, -delta[1], delta[0]])
+    y = np.array([-delta[0], -delta[1], 0, delta[0], delta[1]])
 
-    H = 1/q * np.array([x, y])
+    H = (1 / q) * np.sqrt(q) * np.array([x, y])
 
     return H
 
 def init_Qt(self):
-    Qt = np.array([self.l_sigma[0]**2, 0], [0, self.l_sigma[1]])
+    Qt = np.array([[self.l_sigma[0]**2, 0], [0, self.l_sigma[1]]])
     return Qt
+
 
 def update_Qt(Qt):
     Qt1 = [Qt , 0],
@@ -164,9 +167,9 @@ def resampling(self): # Broken gotta fix.
 
 if __name__ == '__main__':
 
-    particle = particle_filter([10,10,10], 10)
+    particle = particle_filter([10,10,10], [10,10,10], 10)
 
-    particle_set = particle.creating_particles(1, 1)
+    particle_set = particle.creating_particles(1, [3, math.pi/3])
 
     # particle.weight = [0.1]*10
     # resample = resampling(particle)
