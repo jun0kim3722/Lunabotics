@@ -32,9 +32,9 @@ class particle_filter:
         #     ----------------------landmark, Ct-------------------------------
             if self.Ct: # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
                 # initialize mean = mu => list of landmarks
-                l_pos = landmark_pos(particle, Zt)
+                l_pos = landmark_pos(particle, Zt); self.prev_l_pos = l_pos
                 Z_hat, delta = h(particle, l_pos)
-                l_pos = np.linalg.inv(Z_hat); self.prev_l_pos = l_pos
+                Z_hat = Z_hat[:, np.newaxis]
 
                 # calculate Jacobian = H 
                 H = calc_jacobian(Z_hat, delta)
@@ -112,8 +112,6 @@ def h(particle, L_pos):
     delta = np.array([L_x - R_x, L_y - R_y])
     q = delta.T @ delta
     q = q[0][0]
-    
-    print(np.arctan2(delta[1], delta[0]))
 
     Z_hat = np.array([np.sqrt(q), np.arctan2(delta[1][0], delta[0][0]) - R_th])
 
@@ -121,11 +119,14 @@ def h(particle, L_pos):
 
 # Jacobian calculation function
 def calc_jacobian(Z_hat, delta):
-    q = Z_hat[0]
-    x = np.array([delta[1], -delta[0], q , -delta[1], delta[0]])
-    y = np.array([-delta[0], -delta[1], 0, delta[0], delta[1]])
+    sqrt_q = Z_hat[0]
+    print(delta)
+    x = np.array([-delta[0][0], -delta[1][0], 0, delta[0][0], delta[1][0]])
+    y = np.array([ delta[1][0], -delta[0][0], sqrt_q**2 , -delta[1][0], delta[0][0]])
 
-    H = (1/q) * np.sqrt(q) * np.array([x,y])
+
+    H = (1/q) * np.array([sqrt_q * x,y])
+    print(H)
 
     return H
 
