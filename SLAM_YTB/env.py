@@ -31,9 +31,10 @@ class buildEnvironment:
         if data != False:
             for element in data:
                 point = self.AD2pos(element[0], element[1], element[2])
+                Particle_filter.Zt = [element[0], element[1]]
                 if point not in self.pointCloud:
                     self.pointCloud.append(point)
-                    # Particle_filter.Ct = True
+                    Particle_filter.Ct = True
         else:
             print("No lazer data")
 
