@@ -1,18 +1,19 @@
 import numpy as np
 import math
-from scipy.stats import multivariate_normal
 from numpy.random import random
 from functools import reduce
 
-def calc_weight(Zt, Q, Zt_1):
-    Wt = (2 * math.pi * Q) ** (-1/2) * np.exp(-1/2 * (Zt - Zt_1) ** 2 / Q * (Zt - Zt_1))
-    return Wt
-
 class particle_filter:
-    def __init__(self, sigma, N):
-        self.pre_particle = [0, 0, 0]
-        self.Ct = None
-        self.sigma = sigma
+    
+    prev_sig = []
+    prev_l_pos = []
+    Qt = None
+
+    def __init__(self, m_sigma, l_sigma, N):
+        self.prev_particle = [0, 0, 0]
+        self.Ct = True
+        self.m_sigma = m_sigma
+        self.l_sigma = l_sigma
         self.N = N
         self.weight = []
         self.particle = []
@@ -20,81 +21,128 @@ class particle_filter:
     def creating_particles(self, Ut, Zt): # form of Ut and Zt gotta be different format. This is just for referace.
 
         particle_set = np.zeros((self.N, 4)) #[x, y, theta, Weight]
-        Wt[N:] = 1/N #default importance weight
 
         for n in range(self.N):
-            x = np.random.normal(self.pre_particle[0] + Ut, self.sigma[0], 1) # Obtain new x value for new sample #starts from uniform distribution
-            y = np.random.normal(self.pre_particle[1] + Ut, self.sigma[1], 1) #Obtains new y value for new sample
-            theta = np.random.normal(self.pre_particle[2] + Ut, self.sigma[2], 1) #Between 0 and 2pi radians
+            x = np.random.normal(self.prev_particle[0] + Ut, self.m_sigma[0], 1) # Obtain new x value for new sample #starts from uniform distribution
+            y = np.random.normal(self.prev_particle[1] + Ut, self.m_sigma[1], 1) #Obtains new y value for new sample
+            theta = np.random.normal(self.prev_particle[2] + Ut, self.m_sigma[2], 1) #Between 0 and 2pi radians
 
             particle = np.concatenate((x, y, theta))
             
-            Z_hat = h(particle, Ut) 
-            H = calc_jacobian(particle, Z_hat)
-            Q = calc_covariance_Q(particle, Wt, H, Zt) # Initialize covariance thingy
-
         #     ----------------------landmark, Ct-------------------------------
-            if # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
-                mu = mu(N);  # initialize mean = mu
-        
+            if self.Ct: # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
+                # initialize mean = mu => list of landmarks
+                l_pos = landmark_pos(particle, Zt)
+                Z_hat, delta = h(particle, l_pos)
+                l_pos = np.linalg.inv(Z_hat); self.prev_l_pos = l_pos
+
+                # calculate Jacobian = H 
+                H = calc_jacobian(Z_hat, delta)
+
+                # initialize covariance => list of uncertainty of landmarks
+                Qt = init_Qt(self); self.Qt = Qt
+                inv_H = np.linalg.inv(H)
+                sig = inv_H @ Qt @ inv_H.T ; self.prev_sig = sig
+
+                # default importance weight
+                Wt = 0.1 # turn value I believe
+
             else:   #<EKF-update> // update landmark
-                Zt_1 = f(self.pre_particle, Ut, Wt) # state transition update = Zt_1
-    
-            Wt = calc_weight(Zt, Q, Zt_1) # calc weight
-            self.weight.append(Wt)
+                # Zt_1 = f(self.prev_particle, Ut, Wt) # state transition update = Zt_1
+                # measurement prediction = Z_hat
+                Z_hat, delta = h(particle, self.prev_l_pos)
+
+                # calculate Jacobian = H
+                H = calc_jacobian(Z_hat, delta)
+
+                # measurment covariance = Q
+                Q = H @ sig @ H.T + Qt
+                #self.Qt = update_Qt(Qt)
+
+                # calculate Kalman gain = K
+                K = calc_kalmangain(self.prev_sig ,H, particle, Q)   
+
+                # update mean = mu ==> mu + K(Zt - z_hat)
+                l_pos = self.prev_l_pos + K @ (Zt - Z_hat)
+                self.prev_l_pos = l_pos
+                # update covariance ==> ()
+                sig = (np.identity(2) - K @ H) @ self.prev_sig
+                self.prev_sig = sig
+
+                # calc weight
+                Wt = calc_weight(Zt, Q, Z_hat)
+                self.weight.append(Wt)
+            
             particle_set = np.concatenate((x, y, theta, np.array([Wt])))
             self.particle.append(particle_set)
 
         particle = list(map(lambda x: self.particle[x], resampling(self))) # list of particles
-        self.pre_particle = particle # update previous list of particles
+        self.prev_particle = particle # update previous list of particles
         particle_bar = reduce((lambda x,y : x + y), [particle[i][0:3] * particle[i][3] for i in range(len(particle))])
 
         return particle_set, particle_bar
 
-#Initialie mu
-def mu(N):
-    num_state_vars = 3
-    initial_state = np.array([0,0,0])
-    particles = np.zeros(N, num_state_vars)
-    for i in range(N):
-        particles[i] = initial_state + np.random.normal(0, 1, num_state_vars)
-    return np.mean(particles, axis=0)
+def landmark_pos(particle, Zt):
+    # num_state_vars = 3
+    # initial_state = np.array([0,0,0])
+    # particles = np.zeros(N, num_state_vars)
+    # for i in range(N):
+    #     particles[i] = initial_state + np.random.normal(0, 1, num_state_vars)
+    # return np.mean(particles, axis=0)
+    R_x = particle[0] # Robot pos x
+    R_y = particle[1] # Robot pos y
+    R_th = particle[2] # Robot pos theta
 
+    L_th = Zt[1] # Angle btw robot to landmark
+    L_d = Zt[0] # distance from robot to landmark
 
-# State transition function
-def f(pre_particle, Ut, Wt):
-    A = np.array([[1, 1], [0, 1]])
-    B = np.array([[0.5], [1]])
-    Zt_1 = np.dot(A, pre_particle) + np.dot(B, Ut) + Wt
-    return Zt_1
+    L_pos = np.array([[R_x], [R_y]]) + np.array([[L_d * np.cos(L_th + R_th)], [L_d * np.sin(L_th + R_th)]])
+    
+    return L_pos # returning x, y of landmark
 
 # Observation function
-def h(particle, Ut):
-    C = np.array([1, 0])
-    Z_hat = np.dot(C, particle) + Ut
-    return Z_hat
+def h(particle, L_pos):
+    R_x = particle[0]
+    R_y = particle[1]
+    R_th = particle[2]
+
+    L_x = L_pos[0] # landmark x
+    L_y = L_pos[1] # landmark y
+
+    delta = np.array([L_x - R_x, L_y - R_y])
+    q = delta.T @ delta
+    q = q[0][0]
+    
+    print(np.arctan2(delta[1], delta[0]))
+
+    Z_hat = np.array([np.sqrt(q), np.arctan2(delta[1][0], delta[0][0]) - R_th])
+
+    return Z_hat, delta # returning expected observation
 
 # Jacobian calculation function
-def calc_jacobian(particle, Z_hat):
-    num_diff = 1e-6
-    N = particle.shape[0]
-    m = Z_hat(particle).shape[0]
-    H = np.zeros((m,N))
-    for i in range(N):
-        particle_i = particle.copy()
-        particle_i[i] += num_diff
-        H[:,i] = (Z_hat(particle_i) - Z_hat(particle)) / num_diff
+def calc_jacobian(Z_hat, delta):
+    q = Z_hat[0]
+    x = np.array([delta[1], -delta[0], q , -delta[1], delta[0]])
+    y = np.array([-delta[0], -delta[1], 0, delta[0], delta[1]])
+
+    H = (1/q) * np.sqrt(q) * np.array([x,y])
+
     return H
 
-# Calculates covariance matrix for process noise
-def calc_covariance_Q(particle, Wt, H, Zt):
-    num_states = H.shape[1]
-    num_measures = H.shape[0]
-    innovation = np.(H, particle) - Zt
-    outer = np.outer(innovation, Wt)
-    Q = np.dot(outer, outer.T) / (1.0 - np.sum(Wt**2))
-    return Q
+def init_Qt(self):
+    Qt = np.array([self.l_sigma[0]**2, 0], [0, self.l_sigma[1]])
+    return Qt
 
+#def update_Qt(Qt):
+    #Qt1 = [Qt , 0],
+
+def calc_kalmangain(sig ,H, particle, Q):
+    K = sig @ H.T @ np.linalg.inv(Q)
+    return K
+
+def calc_weight(Zt, Q, Z_hat):
+    Wt = (2 * math.pi * Q) ** (-1/2) * np.exp(-1/2 * (Zt - Z_hat) ** 2 / Q * (Zt - Z_hat))
+    return Wt
 
 def resampling(self): # Broken gotta fix.
     
@@ -112,13 +160,10 @@ def resampling(self): # Broken gotta fix.
         
     return indexes
 
-
-
 if __name__ == '__main__':
+    particle = particle_filter([10,10,10], [10,10,10], 10)
 
-    particle = particle_filter([10,10,10], 10)
-
-    particle_set = particle.creating_particles(1, 1)
+    particle_set = particle.creating_particles(1, [2, math.pi/2])
 
     # particle.weight = [0.1]*10
     # resample = resampling(particle)
