@@ -110,6 +110,7 @@ def h(particle, v):
     h = np.dot(C, particle) + v
     return h
 
+
 # Jacobian calculation function
 def calc_jacobian(particle_set, h):
     num_diff = 1e-6
