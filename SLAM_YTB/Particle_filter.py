@@ -38,7 +38,6 @@ class particle_filter:
 
                 # calculate Jacobian = H 
                 H = calc_jacobian(Z_hat, delta)
-
                 # initialize covariance => list of uncertainty of landmarks
                 Qt = init_Qt(self); self.Qt = Qt
                 inv_H = np.linalg.inv(H)
@@ -119,19 +118,17 @@ def h(particle, L_pos):
 
 # Jacobian calculation function
 def calc_jacobian(Z_hat, delta):
-    sqrt_q = Z_hat[0]
-    print(delta)
+    sqrt_q = Z_hat[0][0]
+    q = sqrt_q ** 2
     x = np.array([-delta[0][0], -delta[1][0], 0, delta[0][0], delta[1][0]])
-    y = np.array([ delta[1][0], -delta[0][0], sqrt_q**2 , -delta[1][0], delta[0][0]])
-
-
+    y = np.array([ delta[1][0], -delta[0][0], q , -delta[1][0], delta[0][0]])
+    
     H = (1/q) * np.array([sqrt_q * x,y])
-    print(H)
 
     return H
 
 def init_Qt(self):
-    Qt = np.array([self.l_sigma[0]**2, 0], [0, self.l_sigma[1]])
+    Qt = np.array([[self.l_sigma[0]**2, 0], [0, self.l_sigma[1]]])
     return Qt
 
 #def update_Qt(Qt):
