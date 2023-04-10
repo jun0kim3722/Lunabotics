@@ -41,7 +41,7 @@ class particle_filter:
                 # initialize covariance => list of uncertainty of landmarks
                 Qt = init_Qt(self); self.Qt = Qt
                 inv_H = np.linalg.inv(H)
-                sig = inv_H @ Qt @ inv_H.T ; self.prev_sig = sig
+                sig = inv_H @ Qt @inv_H.T ; self.prev_sig = sig
 
                 # default importance weight
                 Wt = 0.1 # turn value I believe
