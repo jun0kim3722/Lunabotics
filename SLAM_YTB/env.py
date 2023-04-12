@@ -1,6 +1,5 @@
 import math
 import pygame
-import Particle_filter
 
 class buildEnvironment:
     def __init__(self, MapDimensions):
@@ -34,21 +33,29 @@ class buildEnvironment:
 
                 if point not in self.pointCloud:
                     self.pointCloud.append(point)
-                    particle.creating_particle.Ct = True
+                    particle.Ct.append(True)
                 else:
-                    particle.creating_particle.Ct = False
+                    particle.Ct.append(False)
+                    print("PASS")
 
         else:
             print("No lazer data")
 
-        if position not in self.true_trajectory:
+        if position[0:2] not in self.true_trajectory:
             self.true_trajectory.append(position)
 
-    def show_sensorData(self):
+    def show_sensorData(self, particle_set, particle_bar):
         self.infomap = self.map.copy()
-        # print(self.pointCloud)
+
         for point in self.pointCloud:
             self.infomap.set_at((int(point[0]), int(point[1])), (255, 255, 255))
+
         for point in self.true_trajectory:
             self.infomap.set_at((int(point[0]), int(point[1])), (0, 200, 255))
-            print("Robot position", point)
+        # print("Robot's actual position", self.true_trajectory[-1])
+        
+        self.infomap.set_at((int(particle_bar[0]), int(particle_bar[1])), (0, 255, 0))
+        # print("Robot's estimated position", particle_bar)
+        
+        for point in particle_set:
+            self.infomap.set_at((int(point[0]), int(point[1])), (255, 0, 0))
