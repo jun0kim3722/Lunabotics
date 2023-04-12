@@ -27,14 +27,17 @@ class buildEnvironment:
         y = -distance * math.sin(angle) + robotPosition[1]
         return (int(x), int(y))
 
-    def dataStorage(self, data, position):
+    def dataStorage(self, data, position, particle):
         if data != False:
             for element in data:
                 point = self.AD2pos(element[0], element[1], element[2])
-                Particle_filter.Zt = [element[0], element[1]]
+
                 if point not in self.pointCloud:
                     self.pointCloud.append(point)
-                    Particle_filter.Ct = True
+                    particle.creating_particle.Ct = True
+                else:
+                    particle.creating_particle.Ct = False
+
         else:
             print("No lazer data")
 

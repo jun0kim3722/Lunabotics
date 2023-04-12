@@ -11,6 +11,7 @@ robot = robot_drive.Robot([200, 200], 10)
 environment.map.fill((0,0,0))
 environment.infomap = environment.map.copy()
 running = True
+particle = Particle_filter.particle_filter([0.01,0.01, 0.01], [0.5,0.5,0.01], 10)
 
 dt = 0
 lasttime = pygame.time.get_ticks()
@@ -28,29 +29,10 @@ while running:
             position = [robot.x, robot.y]
             laser.position = position
             sensor_data = laser.sense_obstacles()
-            environment.dataStorage(sensor_data, position)
+            particle.creating_particles([robot.x, robot.y, robot.theta], sensor_data[0:2])
+            environment.dataStorage(sensor_data, position, particle)
             environment.show_sensorData()
         environment.map.blit(environment.infomap, (0,0))
         pygame.display.update()
 
 
-
-# mouse input
-# while running:
-#     sensorON = False
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             running = False
-#         if pygame.mouse.get_focused():
-#             sensorON = True
-#         elif not pygame.mouse.get_focused():
-#             sensorON = False
-
-#         if sensorON:
-#             position = pygame.mouse.get_pos()
-#             laser.position = position
-#             sensor_data = laser.sense_obstacles()
-#             environment.dataStorage(sensor_data) #error
-#             environment.show_sensorData()
-#         environment.map.blit(environment.infomap, (0,0))
-#         pygame.display.update()
