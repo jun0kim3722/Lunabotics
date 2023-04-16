@@ -38,7 +38,7 @@ class particle_filter:
             
         #     ----------------------landmark, Ct-------------------------------
             for i, zt in enumerate(Zt):
-                if self.Ct[i]: # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
+                if 0 == 1: #self.Ct[i]: # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
                     # initialize mean = mu => list of landmarks
                     self.l_num += 1
                     l_pos = landmark_pos(particle, zt); self.prev_l_pos = l_pos
@@ -61,8 +61,9 @@ class particle_filter:
                 else:   #<EKF-update> // update landmark
                     # Zt_1 = f(self.prev_particle, Ut, Wt) # state transition update = Zt_1
                     print("LANDMARK DETECT")
+                    L_pos = landmark_pos(particle, Zt)
                     # measurement prediction = Z_hat
-                    Z_hat, delta = h(particle, self.prev_l_pos)
+                    Z_hat, delta = h(particle, L_pos)
                     Z_hat = Z_hat[:, np.newaxis]
 
                     # calculate Jacobian = H
@@ -122,7 +123,7 @@ def h(particle, L_pos):
     delta = np.array([L_x - R_x, L_y - R_y])
     q = delta.T @ delta
     q = q[0][0]
-
+    q = -1 * q
     Z_hat = np.array([np.sqrt(q), np.arctan2(delta[1][0], delta[0][0]) - R_th])
 
     return Z_hat, delta # returning expected observation
@@ -131,11 +132,11 @@ def h(particle, L_pos):
 def calc_jacobian(Z_hat, delta, j):
     sqrt_q = Z_hat[0][0]
     q = sqrt_q ** 2
-    x = np.array([-delta[0][0], -delta[1][0], 0, delta[0][0], delta[1][0]])
-    y = np.array([ delta[1][0], -delta[0][0], -q , -delta[1][0], delta[0][0]])
+    x = np.array([-delta[0][0], -delta[1][0], np.zeros_like(delta[0][0]), delta[0][0], delta[1][0]])
+    y = np.array([delta[1][0], -delta[0][0], -q , -delta[1][0], delta[0][0]])
 
     id_3 = np.concatenate((np.identity(3), np.zeros((2,3))), axis=0)
-    zero = np.zeros((5, 2*j - 2))
+    zero = np.zeros((5,3))
     id_2 = np.concatenate((np.zeros((3,2)), np.identity(2)), axis=0)
     M_high = np.concatenate((id_3, zero, id_2), axis= 1)
 
