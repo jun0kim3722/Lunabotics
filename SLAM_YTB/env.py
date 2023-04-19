@@ -33,10 +33,10 @@ class buildEnvironment:
 
                 if point not in self.pointCloud:
                     self.pointCloud.append(point)
-                    particle.Ct.append(True)
+                    particle.Ct.append([True, 0])
                 else:
-                    particle.Ct.append(False)
-                    print("PASS")
+                    idx = self.pointCloud.index(point)
+                    particle.Ct.append([False, idx])
 
         else:
             print("No lazer data")
@@ -52,9 +52,9 @@ class buildEnvironment:
 
         for point in self.true_trajectory:
             self.infomap.set_at((int(point[0]), int(point[1])), (0, 200, 255))
-        # print("Robot's actual position", self.true_trajectory[-1])
+        print("Robot's actual position", self.true_trajectory[-1])
         
-        self.infomap.set_at((int(particle_bar[0]), int(particle_bar[1])), (0, 255, 0))
+        self.infomap.set_at((int(particle_bar[0]), int(particle_bar[1])), (50, 255, 0))
         # print("Robot's estimated position", particle_bar)
         
         for point in particle_set:

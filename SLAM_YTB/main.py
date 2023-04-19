@@ -12,7 +12,7 @@ robot = robot_drive.Robot([200, 200], 10)
 environment.map.fill((0,0,0))
 environment.infomap = environment.map.copy()
 running = True
-particle = Particle_filter.particle_filter([0.01,0.01, 0.01], [0.5,0.5,0.01], 10, [600, 1200])
+particle = Particle_filter.particle_filter([0.01,0.01, 0.01], [0.5,0.5,0.01], 100, [1200, 600])
 
 dt = 0
 lasttime = pygame.time.get_ticks()
