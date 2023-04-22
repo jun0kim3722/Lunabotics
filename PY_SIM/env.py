@@ -1,5 +1,6 @@
 import math
 import pygame
+import pdb
 
 class buildEnvironment:
     def __init__(self, MapDimensions):
@@ -33,10 +34,14 @@ class buildEnvironment:
 
                 if point not in self.pointCloud:
                     self.pointCloud.append(point)
-                    particle.Ct.append([True, 0])
+                    particle.Ct.append([True, None])
+
+                    # print("new Landmark", len(self.pointCloud)) #del
+
                 else:
                     idx = self.pointCloud.index(point)
                     particle.Ct.append([False, idx])
+
 
         else:
             print("No lazer data")
@@ -48,14 +53,19 @@ class buildEnvironment:
         self.infomap = self.map.copy()
 
         for point in self.pointCloud:
-            self.infomap.set_at((int(point[0]), int(point[1])), (255, 255, 255))
+            # self.infomap.set_at((int(point[0]), int(point[1])), (255, 255, 255))
+            pygame.draw.circle(self.infomap, color=(255, 255, 255), center= (int(point[0]), int(point[1])), radius = 1)
 
         for point in self.true_trajectory:
-            self.infomap.set_at((int(point[0]), int(point[1])), (0, 200, 255))
+            # self.infomap.set_at((int(point[0]), int(point[1])), (0, 200, 255))
+            pygame.draw.circle(self.infomap, color=(0, 200, 255), center= (int(point[0]), int(point[1])), radius = 2)
         print("Robot's actual position", self.true_trajectory[-1])
         
         self.infomap.set_at((int(particle_bar[0]), int(particle_bar[1])), (50, 255, 0))
-        # print("Robot's estimated position", particle_bar)
+        pygame.draw.circle(self.infomap, color=(200, 200, 0), center= (int(particle_bar[0]), int(particle_bar[1])), radius = 2)
+        print("Robot's estimated position", particle_bar)
+        
         
         for point in particle_set:
             self.infomap.set_at((int(point[0]), int(point[1])), (255, 0, 0))
+            # pygame.draw.circle(self.infomap, color=(255, 0, 0), center= (int(point[0]), int(point[1])), radius = 1)

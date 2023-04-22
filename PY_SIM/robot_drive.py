@@ -36,15 +36,15 @@ class Robot:
     def control(self, event, dt):
 
         if event.key == pygame.K_UP:
-            self.vl = random.normal(loc = 10, scale = 0.05)
-            self.vr = random.normal(loc = 10, scale = 0.05)
+            self.vl = random.normal(loc = 10, scale = 0.005)
+            self.vr = random.normal(loc = 10, scale = 0.005)
         elif event.key == pygame.K_DOWN:
-            self.vl = random.normal(loc = -10, scale = 0.5)
-            self.vr = random.normal(loc = -10, scale = 0.5)
+            self.vl = random.normal(loc = -10, scale = 0.005)
+            self.vr = random.normal(loc = -10, scale = 0.005)
         elif event.key == pygame.K_LEFT:
-            self.theta += random.normal(loc = 1, scale = 0.1)
+            self.theta += random.normal(loc = 1, scale = 0.001)
         elif event.key == pygame.K_RIGHT:
-            self.theta -= random.normal(loc = 1, scale = 0.1)
+            self.theta -= random.normal(loc = 1, scale = 0.001)
 
         self.x += ((self.vl + self.vr) / 2) * math.cos(self.theta)
         self.y -= ((self.vl + self.vr) / 2) * math.sin(self.theta)
