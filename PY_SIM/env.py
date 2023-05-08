@@ -36,7 +36,7 @@ class buildEnvironment:
                     self.pointCloud.append(point)
                     particle.Ct.append([True, None])
 
-                    # print("new Landmark", len(self.pointCloud)) #del
+                    print("landmark pos", point)
 
                 else:
                     idx = self.pointCloud.index(point)
