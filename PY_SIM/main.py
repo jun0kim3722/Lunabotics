@@ -14,7 +14,7 @@ robot = robot_drive.Robot([200, 200], 10)
 environment.map.fill((0,0,0))
 environment.infomap = environment.map.copy()
 running = True
-particle = Particle_filter.particle_filter([5, 5, 0.1], [0.5,0.5,0.1], 30, [1200, 600])
+particle = Particle_filter.particle_filter([0.2, 0.2, 0.1], [0.5,0.5,0.1], 5, [1200, 600])
 dt = 0
 lasttime = pygame.time.get_ticks()
 
@@ -28,7 +28,7 @@ while running:
             robot.control(event, dt)
             x = ((robot.vl + robot.vr) / 2) * math.cos(robot.theta)
             y = ((robot.vl + robot.vr) / 2) * math.sin(robot.theta)
-            theta = (robot.vr - robot.vl) / robot.w * dt
+            theta = robot.dif_th
 
             position = [robot.x, robot.y, robot.theta]
             laser.position = position
@@ -37,9 +37,8 @@ while running:
 
             if sensor_data != False:
                 dis_ang = np.array([i[0:2] for i in sensor_data])
-
-            particle_set, particle_bar = particle.creating_particles([x, -y, theta], dis_ang)
-            environment.show_sensorData(particle_set, particle_bar)
+                particle_set, particle_bar = particle.creating_particles([x, -y, theta], dis_ang) # theta wrong input value
+                environment.show_sensorData(particle_set, particle_bar)
 
         environment.map.blit(environment.infomap, (0,0))
         pygame.display.update()

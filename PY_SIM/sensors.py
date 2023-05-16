@@ -38,7 +38,7 @@ class Laserensor:
                 if 0 < x < self.W and 0 < y < self.H:
                     color = self.map.get_at((x,y))
                     if (color[0], color[1], color[2]) == (0, 0, 0):
-                        distance = self.distance((x,y))
+                        distance = self.distance((x,y)) # to x,y
                         output = uncertainty_add(distance, angle, self.sigma)
                         output.append(self.position)
                         # store the mesurements

@@ -11,6 +11,7 @@ class Robot:
         self.x = startpos[0]
         self.y = startpos[1]
         self.theta = 0
+        self.dif_th = 0
         self.vl = 0.01 * self.m2p
         self.vr = 0.01 * self.m2p
         self.maxspeed = 0.02 * self.m2p
@@ -34,21 +35,22 @@ class Robot:
         pygame.draw.circle(screen, (0, 0, 255), (int(wheel_x), int(wheel_y)), wheel_radius)
 
     def control(self, event, dt):
-
+        self.dif_th = 0
         if event.key == pygame.K_UP:
-            self.vl = random.normal(loc = 10, scale = 0.005)
-            self.vr = random.normal(loc = 10, scale = 0.005)
+            self.vl = random.normal(loc = 10, scale = 0.05)
+            self.vr = random.normal(loc = 10, scale = 0.05)
         elif event.key == pygame.K_DOWN:
-            self.vl = random.normal(loc = -10, scale = 0.005)
-            self.vr = random.normal(loc = -10, scale = 0.005)
+            self.vl = random.normal(loc = -10, scale = 0.05)
+            self.vr = random.normal(loc = -10, scale = 0.05)
         elif event.key == pygame.K_LEFT:
-            self.theta += random.normal(loc = 1, scale = 0.001)
+            self.dif_th += random.normal(loc = 1, scale = 0.005)
+            self.theta += self.dif_th
         elif event.key == pygame.K_RIGHT:
-            self.theta -= random.normal(loc = 1, scale = 0.001)
+            self.dif_th -= random.normal(loc = 1, scale = 0.005)
+            self.theta += self.dif_th
 
         self.x += ((self.vl + self.vr) / 2) * math.cos(self.theta)
         self.y -= ((self.vl + self.vr) / 2) * math.sin(self.theta)
-        self.theta += (self.vr - self.vl) / self.w * dt
         
 
 

@@ -41,6 +41,7 @@ class buildEnvironment:
                 else:
                     idx = self.pointCloud.index(point)
                     particle.Ct.append([False, idx])
+                    print("seen", idx)
 
 
         else:
