@@ -37,7 +37,7 @@ while running:
 
             if sensor_data != False:
                 dis_ang = np.array([i[0:2] for i in sensor_data])
-                particle_set, particle_bar = particle.creating_particles([x, -y, theta], dis_ang) # theta wrong input value
+                particle_set, particle_bar = particle.creating_particles([x, -y, theta], dis_ang)
                 environment.show_sensorData(particle_set, particle_bar)
 
         environment.map.blit(environment.infomap, (0,0))

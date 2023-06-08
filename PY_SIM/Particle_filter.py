@@ -5,27 +5,22 @@ from math import pi
 
 class landmark:
     num_land = 0
-    l_pos = [] # need L_pos of each particle???
-    l_sig = [] # same here
+    l_pos = []
+    l_sig = []
     Qt = 0
-    
-    def __init__ (self, n, idx, sig, l_pos):
-        landmark.l_sig[idx][n] = sig
-        landmark.l_pos[idx][n] = l_pos
 
     def add_landmark(N):
         landmark.num_land += 1
-        landmark.l_sig.append(np.zeros(N))
-        landmark.l_pos.append(np.zeros(N))
-        return landmark.num_land
+        landmark.l_pos.append(np.zeros((N,2)))
+        landmark.l_sig.append(np.zeros((N,2,2)))
     
-    def update_landmark(idx, n,  l_pos, sig):
+    def update_landmark(n, idx, l_pos, sig):
         landmark.l_sig[idx][n] = sig
-        landmark.l_pos[idx][n] = l_pos
+        landmark.l_pos[idx][n] = l_pos.T
 
-    def prev_val (idx):
-        l_pos = landmark.l_pos[idx]
-        sig = landmark.l_sig[idx]
+    def prev_val (n, idx):
+        l_pos = landmark.l_pos[idx][n]
+        sig = landmark.l_sig[idx][n]
         return l_pos, sig
 
 class particle_filter:
@@ -38,10 +33,9 @@ class particle_filter:
         self.N = N
         self.weight = []
         self.map_size = map
-        self.new_landmark = 0
         landmark.Qt = np.array([[l_sigma[0]**2, 0], [0, l_sigma[1]**2]])
 
-    def creating_particles(self, Ut, Zt): # form of Ut and Zt gotta be different format. This is just for referace.
+    def creating_particles(self, Ut, Zt):
 
         particle_set = np.zeros((self.N, 3)) #[x, y, theta, Weight]
     
@@ -49,7 +43,7 @@ class particle_filter:
             if self.prev_R_pos != []:
                 x = np.random.normal(self.prev_particle[n][0] + Ut[0], self.m_sigma[0], 1) # Obtain new x value for new sample
                 y = np.random.normal(self.prev_particle[n][1] + Ut[1], self.m_sigma[1], 1) #Obtains new y value for new sample
-                theta = np.random.normal(self.prev_particle[n][2] + Ut[2], self.m_sigma[2], 1) #Between 0 and 2pi radians //////////////work needed
+                theta = np.random.normal((self.prev_particle[n][2] + Ut[2]) % 2, self.m_sigma[2], 1) #Between 0 and 2pi radians //////////////work needed
 
             else: #starts from uniform distribution
                 x = np.random.uniform(0, self.map_size[0], 1)
@@ -67,10 +61,11 @@ class particle_filter:
             for i, z in enumerate(Zt): # Landmark by landmark
                 zt = np.array([z]).T
 
-                if self.Ct[i][0]: # Ct never seen before: Ct = Matrix that discribe how to map the state Xt to an observation Zt
+                if self.Ct[i][0]: # Ct never seen before. Ct = [[seen? T or F], [idx of landmark if true]]
                     # add landmark
+                    l_idx = self.Ct[i][1]
                     if (n == 0):
-                        self.new_landmark = landmark.add_landmark(self.N) - 1
+                        landmark.add_landmark(self.N)
 
                     # initialize mean = mu => list of landmarks
                     l_pos = landmark_pos(particle, zt)
@@ -88,12 +83,13 @@ class particle_filter:
                     l_weight[i] = Wt
 
                     # landmark init
-                    # pdb.set_trace()
-                    landmark(n, self.new_landmark, sig, l_pos)
+                    landmark.update_landmark(n, l_idx, l_pos, sig)
 
                 else:   #<EKF-update> // update landmark
                     # Get prev value
-                    prev_l_pos, prev_sig = landmark.prev_val(self.Ct[i][1])
+                    l_idx = self.Ct[i][1]
+                    prev_l_pos, prev_sig = landmark.prev_val(n, l_idx)
+                    prev_l_pos = prev_l_pos[:, np.newaxis]
 
                     # measurement prediction = Z_hat
                     Z_hat, delta, q = h(particle, prev_l_pos) # Z_hat = (2,1) delta = (2,1)
@@ -117,7 +113,7 @@ class particle_filter:
                          # [(2,2) - (2,2) @ (2,2) ] @ (2,2) = (2,2)
 
                     # update landmark class
-                    landmark.update_landmark(self.Ct[i][1], n, l_pos, sig)
+                    landmark.update_landmark(n, l_idx, l_pos, sig)
 
                     # calc weight
                     Wt = calc_weight(zt, Q, Z_hat) # weight of landamrk[j] with particle[n]
@@ -198,7 +194,6 @@ def h(particle, L_pos):
     R_x = particle[0]
     R_y = particle[1]
     R_th = particle[2]
-
     L_x = L_pos[0][0] # landmark x
     L_y = L_pos[1][0] # landmark y
 

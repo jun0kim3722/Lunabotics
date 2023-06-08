@@ -34,7 +34,8 @@ class buildEnvironment:
 
                 if point not in self.pointCloud:
                     self.pointCloud.append(point)
-                    particle.Ct.append([True, None])
+                    idx = len(self.pointCloud) - 1
+                    particle.Ct.append([True, idx])
 
                     print("landmark pos", point)
 
@@ -60,6 +61,7 @@ class buildEnvironment:
         for point in self.true_trajectory:
             # self.infomap.set_at((int(point[0]), int(point[1])), (0, 200, 255))
             pygame.draw.circle(self.infomap, color=(0, 200, 255), center= (int(point[0]), int(point[1])), radius = 2)
+        self.true_trajectory[-1][2] %= 2
         print("Robot's actual position", self.true_trajectory[-1])
         
         self.infomap.set_at((int(particle_bar[0]), int(particle_bar[1])), (50, 255, 0))
