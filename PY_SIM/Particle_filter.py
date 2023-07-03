@@ -43,14 +43,14 @@ class particle_filter:
             if self.prev_R_pos != []:
                 x = np.random.normal(self.prev_particle[n][0] + Ut[0], self.m_sigma[0], 1) # Obtain new x value for new sample
                 y = np.random.normal(self.prev_particle[n][1] + Ut[1], self.m_sigma[1], 1) #Obtains new y value for new sample
-                theta = np.random.normal((self.prev_particle[n][2] + Ut[2]) % 2, self.m_sigma[2], 1) #Between 0 and 2pi radians //////////////work needed
+                theta = np.random.normal((self.prev_particle[n][2] + Ut[2]) % (2 * np.pi), self.m_sigma[2], 1) #Between 0 and 2pi radians
 
             else: #starts from uniform distribution
                 x = np.random.uniform(0, self.map_size[0], 1)
                 y = np.random.uniform(0, self.map_size[1], 1)
                 theta = np.random.uniform(0, 2, 1)
                 
-                if(n == 3):
+                if(n == 0):
                     x = np.array([200])
                     y = np.array([200])
                     theta = np.array([0])
@@ -79,7 +79,8 @@ class particle_filter:
                         # (2,2) @ (2,2) @ (2,2)
 
                     # default importance weight
-                    Wt = 1 /self.N
+                    # Wt = 1 /self.N
+                    Wt = 1
                     l_weight[i] = Wt
 
                     # landmark init
@@ -117,7 +118,7 @@ class particle_filter:
 
                     # calc weight
                     Wt = calc_weight(zt, Q, Z_hat) # weight of landamrk[j] with particle[n]
-                    l_weight[i] = Wt * 10 ** 5
+                    l_weight[i] = Wt #* 10 ** 3
                     
                     if np.isnan(Wt) or np.isinf(Wt):
                         print("Individual nan or inf")
@@ -127,7 +128,9 @@ class particle_filter:
                 print("Weight of particle is nan or inf")
                 pdb.set_trace()
             
-            self.weight.append(np.prod(l_weight[l_weight != 0]))
+            # self.weight.append(np.prod(l_weight[l_weight != 0]))
+            # print("l_weight", l_weight)
+            self.weight.append(np.prod(l_weight))
             # self.weight.append(sum(l_weight))
 
             particle_set[n] = np.concatenate((x, y, theta))
@@ -159,15 +162,14 @@ class particle_filter:
         new_particle = np.array(list(map(lambda x: particle_set[x], idx)))
         particle_bar = new_particle.mean(0)
 
-        np.set_printoptions(suppress = True)
+        # np.set_printoptions(suppress = True)
         # print('set', np.array(list(map(lambda x: [round(i,1) for i in x], particle_set))))
-        print("set", particle_set)
-        print('Weight', self.weight)
-        print("idx: ", idx)
+        # print("set", particle_set)
+        # print('Weight', self.weight)
+        # print("idx: ", idx)
         # print("Max_weight", particle_set[np.argmax(self.weight)])
         # print("new_particle", new_particle)
 
-        # pdb.set_trace()
         self.prev_R_pos = particle_bar # update previous pos of robot
         self.prev_particle = new_particle
         self.Ct = []
